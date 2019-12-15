@@ -6,9 +6,6 @@ import "os"
 import "github.com/alexflint/go-arg"
 
 // CLI flags and values
-type ReadCmd struct {
-	Image string `arg:"positional,required" help:"Microdrive/Turbo image file"`
-}
 
 type args struct {
 	Read *ReadCmd `arg:"subcommand:read"`

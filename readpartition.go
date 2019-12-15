@@ -1,28 +1,72 @@
 package main
 
+import "encoding/json"
 import "fmt"
 import "os"
 
 import "github.com/disappearinjon/microdrive/mdturbo"
 
+// CLI for Read command
+type ReadCmd struct {
+	Image  string `arg:"positional,required" help:"Microdrive/Turbo image file"`
+	File   string `arg:"-f" help:"Output filename. - for STDOUT" default:"-"`
+	Output string `arg:"-o" help:"Output format: text, json" default:"text"`
+}
+
 func readPartition() error {
-	file, err := os.Open(cli.Read.Image)
+	var output *os.File
+	var err error
+
+	// Open the file passed in for reading
+	imagefile, err := os.Open(cli.Read.Image)
+	defer imagefile.Close()
 	if err != nil {
 		return err
 	}
-	firstSector := make([]byte, mdturbo.SectorSize)
 
-	read, err := file.Read(firstSector)
+	// Set output device
+	switch cli.Read.File {
+	case "-":
+		output = os.Stdout
+	default:
+		output, err = os.Create(cli.Read.File)
+		if err != nil {
+			return err
+		}
+	}
+	defer output.Close()
+
+	// Get first disk sector, where the partition table sits
+	firstSector := make([]byte, mdturbo.SectorSize)
+	read, err := imagefile.Read(firstSector)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(os.Stderr, "Read %v bytes\n", read)
 
+	// Parse the sector
 	partMap, err := mdturbo.Deserialize(firstSector)
 	if err != nil {
 		return err
 	}
+	if !partMap.Validate() {
+		fmt.Fprintf(os.Stderr, "WARNING: partition map appears invalid\n")
+	}
 
-	fmt.Printf("%+v\n", partMap)
+	// Print it
+	switch cli.Read.Output {
+	case "text":
+		fmt.Fprintf(output, "%v\n", partMap)
+	case "json":
+		marshaled, err := json.MarshalIndent(partMap, "", "\t")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(output, "%v\n", string(marshaled))
+	default:
+		return fmt.Errorf("unknown output format %s", cli.Read.Output)
+	}
+
+	// And done
 	return nil
 }

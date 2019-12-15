@@ -1,6 +1,5 @@
 # To Do (semi-prioritized)
-* Validate function for partition table structure
-* Output formats for structure printing
+* Rework deserialize to use struct tags & reflections?
 * Unit Tests
 * Serialization of partition table
 * CLI: update partition table command (from file?)
@@ -14,3 +13,6 @@
 * To-Do list
 * Add license
 * Basic CLI: filename, print command
+* Output formats for structure printing
+* End() function on MDTurbo struct to simplify other code
+* Validate function for partition table structure

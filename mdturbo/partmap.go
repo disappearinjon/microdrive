@@ -80,10 +80,26 @@ type MDTurbo struct {
 	Unknown6 []uint8 // Probably padding, per CiderPress
 }
 
+// Validate returns true if the partition tables appears to be valid,
+// and False if it does not.
+func (pt MDTurbo) Validate() bool {
+	if pt.Magic != 52426 {
+		return false
+	}
+	if pt.Partitions1[0].Start != 256 {
+		return false
+	}
+	return true
+}
+
 // Field is the offset map for bytes in a sector
 type Field struct {
 	Start  uint16 // Byte offset
 	Length uint16 // Length of field
+}
+
+func (f Field) End() uint16 {
+	return f.Start + f.Length
 }
 
 // offsetMap is the byte offset for locations in the partition map
@@ -107,29 +123,32 @@ var offsetMap = map[fieldNames]Field{
 	unknown6:   {0xc0, 320},
 }
 
-// Deserialize converts from a disk sector into an MDTurbo struct
+// Deserialize converts from a disk sector into an MDTurbo struct.
+// Returns a partition table data structure, or an error if the
+// structure cannot be parsed. It does *NOT* check for overall structure
+// validity; use MDTurbo.Validate() for that.
 func Deserialize(data []byte) (MDTurbo, error) {
 	var partmap MDTurbo
 
-	// Basic sanity checks
+	// Basic sanity check
 	if len(data) < PartitionBlkLen {
 		return partmap, fmt.Errorf("not an MDTurbo partition map: too short (%v bytes, expected %v)", len(data), PartitionBlkLen)
 	}
 
 	// Simple field deserialization
-	partmap.Magic = binary.LittleEndian.Uint16(data[offsetMap[magic].Start : offsetMap[magic].Start+offsetMap[magic].Length])
-	partmap.Cylinders = binary.LittleEndian.Uint16(data[offsetMap[cylinders].Start : offsetMap[cylinders].Start+offsetMap[cylinders].Length])
+	partmap.Magic = binary.LittleEndian.Uint16(data[offsetMap[magic].Start:offsetMap[magic].End()])
+	partmap.Cylinders = binary.LittleEndian.Uint16(data[offsetMap[cylinders].Start:offsetMap[cylinders].End()])
 	partmap.Unknown1 = data[offsetMap[unknown1].Start : offsetMap[unknown1].Start+offsetMap[unknown1].Length]
-	partmap.Heads = binary.LittleEndian.Uint16(data[offsetMap[heads].Start : offsetMap[heads].Start+offsetMap[heads].Length])
-	partmap.Sectors = binary.LittleEndian.Uint16(data[offsetMap[sectors].Start : offsetMap[sectors].Start+offsetMap[sectors].Length])
-	partmap.Unknown2 = data[offsetMap[unknown2].Start : offsetMap[unknown2].Start+offsetMap[unknown2].Length]
+	partmap.Heads = binary.LittleEndian.Uint16(data[offsetMap[heads].Start:offsetMap[heads].End()])
+	partmap.Sectors = binary.LittleEndian.Uint16(data[offsetMap[sectors].Start:offsetMap[sectors].End()])
+	partmap.Unknown2 = data[offsetMap[unknown2].Start:offsetMap[unknown2].End()]
 	partmap.PartCount1 = data[offsetMap[partCount1].Start]
 	partmap.PartCount2 = data[offsetMap[partCount2].Start]
-	partmap.Unknown3 = data[offsetMap[unknown3].Start : offsetMap[unknown3].Start+offsetMap[unknown3].Length]
-	partmap.RomVersion = binary.LittleEndian.Uint16(data[offsetMap[romVersion].Start : offsetMap[romVersion].Start+offsetMap[romVersion].Length])
-	partmap.Unknown4 = data[offsetMap[unknown4].Start : offsetMap[unknown4].Start+offsetMap[unknown4].Length]
-	partmap.Unknown5 = data[offsetMap[unknown5].Start : offsetMap[unknown5].Start+offsetMap[unknown5].Length]
-	partmap.Unknown6 = data[offsetMap[unknown6].Start : offsetMap[unknown6].Start+offsetMap[unknown6].Length]
+	partmap.Unknown3 = data[offsetMap[unknown3].Start:offsetMap[unknown3].End()]
+	partmap.RomVersion = binary.LittleEndian.Uint16(data[offsetMap[romVersion].Start:offsetMap[romVersion].End()])
+	partmap.Unknown4 = data[offsetMap[unknown4].Start:offsetMap[unknown4].End()]
+	partmap.Unknown5 = data[offsetMap[unknown5].Start:offsetMap[unknown5].End()]
+	partmap.Unknown6 = data[offsetMap[unknown6].Start:offsetMap[unknown6].End()]
 
 	for partNum := 0; partNum < int(partmap.PartCount1); partNum++ {
 		var length uint32
