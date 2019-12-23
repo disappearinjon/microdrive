@@ -17,14 +17,6 @@ func (args) Description() string {
 
 var cli args
 
-// checkFatal is a quick hack to simplify error handling for fatal
-// errors.
-func checkFatal(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func main() {
 	var err error
 	parsed := arg.MustParse(&cli)

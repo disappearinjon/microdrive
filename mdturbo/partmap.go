@@ -16,7 +16,7 @@ const MaxPartitions = 8
 const SectorSize = 512
 
 // PartitionBlkLen is the number of bytes for a partition block
-const PartitionBlkLen = 256
+const PartitionBlkLen = 512
 
 // fieldNames is an enumerated type for the fields in the partition map
 // data structure. See the descriptions in the MDTurbo struct definition
