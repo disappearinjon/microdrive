@@ -52,22 +52,22 @@ func TestDeserialize(t *testing.T) {
 		t.Errorf("valid partition table failed to validate")
 	}
 	if partmap.Cylinders != 995 {
-		t.Errorf("cylinder count incorrect")
+		t.Errorf("cylinder count incorrect (got %d, wanted %d)", partmap.Cylinders, 995)
 	}
 	if partmap.Heads != 16 {
-		t.Errorf("head count incorrect")
+		t.Errorf("head count incorrect (got %d, wanted %d)", partmap.Heads, 16)
 	}
 	if partmap.Sectors != 63 {
-		t.Errorf("sector count incorrect")
+		t.Errorf("sector count incorrect (got %d, wanted %d)", partmap.Sectors, 63)
 	}
 	if partmap.PartCount1 != 8 {
-		t.Errorf("partition 1 count incorrect")
+		t.Errorf("partition 1 count incorrect (got %d, wanted %d)", partmap.PartCount1, 8)
 	}
 	if partmap.PartCount2 != 0 {
-		t.Errorf("partition 2 count incorrect")
+		t.Errorf("partition 2 count incorrect (got %d, wanted %d)", partmap.PartCount2, 0)
 	}
 	if partmap.RomVersion != 3 {
-		t.Errorf("ROM version incorrect")
+		t.Errorf("ROM version incorrect (got %d wanted %d)", partmap.RomVersion, 3)
 	}
 
 	for _, tt := range partitionChecks {

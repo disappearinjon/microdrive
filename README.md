@@ -13,6 +13,7 @@ for specifics.
 * [Download](https://golang.org/dl/) and install Go, if you have not
   already done so.
 * Install dependencies: `go get -d ./...`
+* Run tests: `go test -v ./...`
 * Build and install: `go install`
 
 This will install binaries in the directory defined by

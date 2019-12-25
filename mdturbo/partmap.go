@@ -6,8 +6,12 @@
 // contains a partial description.
 package mdturbo
 
-import "encoding/binary"
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+	"reflect"
+	"strconv"
+)
 
 // MaxPartitions is the maximum number of partitions in an image
 const MaxPartitions = 8
@@ -18,66 +22,46 @@ const SectorSize = 512
 // PartitionBlkLen is the number of bytes for a partition block
 const PartitionBlkLen = 512
 
-// fieldNames is an enumerated type for the fields in the partition map
-// data structure. See the descriptions in the MDTurbo struct definition
-// for more detail
-type fieldNames int
-
-const (
-	magic fieldNames = iota
-	cylinders
-	heads
-	unknown1
-	sectors
-	unknown2
-	partCount1
-	partCount2
-	unknown3
-	romVersion
-	unknown4
-	partStart1
-	partLen1
-	unknown5
-	partStart2
-	partLen2
-	unknown6
-)
-
-func (f fieldNames) String() string {
-	return [...]string{"Magic", "Cylinders", "Heads", "Unknown1",
-		"Sectors", "Unknown2", "PartCount1", "PartCount2",
-		"Unknown3", "RomVersion", "Unknown4", "PartStart1",
-		"PartLen1", "Unnknown5", "PartStart2", "PartLen2",
-		"Unknown6"}[f]
-}
-
 // Partition is data for a single partition in a partition map
 type Partition struct {
-	Start  uint32 // Offset in bytes of partition in sectors
-	Length uint32 // Length of partition in sectors
+	Start     uint32 // Offset in bytes of partition in sectors
+	RawLength uint32 // Length of partition in sectors
+}
+
+func (p Partition) Length() uint32 {
+	return p.RawLength & 0x00ffffff
 }
 
 // MDTurbo is the data structure with what we know about a
-// MicroDrive/Turbo partition map
+// MicroDrive/Turbo partition map. The struct tag serialize is used to
+// encode the offset of a field; length is calculated from the data type.
+//
+// Because the Partitions data structure doesn't map exactly, we do keep
+// the offset but the prcessing is a very very special case.
 type MDTurbo struct {
-	Magic      uint16 // Drive type identifier
-	Cylinders  uint16 // # of cylinders
-	Heads      uint16 // heads per cyl
-	Sectors    uint16 // sectors per track
-	PartCount1 uint8  // # of partitions in first chunk
-	PartCount2 uint8  // # of partitions in second chunk
-	RomVersion uint16 // IIgs Rom version (01 or 03)
+	Magic      uint16    `offset:"0x00"` // Drive type identifier
+	Cylinders  uint16    `offset:"0x02"` // # of cylinders
+	Unknown1   [2]uint8  `offset:"0x04"` // Unknown region 1
+	Heads      uint16    `offset:"0x06"` // heads per cyl
+	Sectors    uint16    `offset:"0x08"` // sectors per track
+	Unknown2   [2]uint8  `offset:"0x0A"` // Unknown region 2
+	PartCount1 uint8     `offset:"0x0C"` // # of partitions in first chunk
+	PartCount2 uint8     `offset:"0x0D"` // # of partitions in second chunk
+	Unknown3   [10]uint8 `offset:"0x0E"` // Unknown region 3
+	RomVersion uint16    `offset:"0x18"` // IIgs Rom version (01 or 03)
+	Unknown4   [6]uint8  `offset:"0x1A"` // Unknown region 4
 
-	Partitions1 [MaxPartitions]Partition // Partitions in first chunk
-	Partitions2 [MaxPartitions]Partition // Partitions in second chunk
+	// The partitions are actually represented as Start Sector
+	// numbers (0x20, 4 bytes for each of the 8 = 32 bytes),
+	// followed by lengths (another 32 bytes starting at 0x40).
+	Partitions1 [MaxPartitions]Partition `offset:"0x20"`
 
-	// Unknown and Undocumented ranges
-	Unknown1 []uint8 // Unknown region 1
-	Unknown2 []uint8 // Unknown region 2
-	Unknown3 []uint8 // Unknown region 3
-	Unknown4 []uint8 // Unknown region 4
-	Unknown5 []uint8 // Unknown region 5
-	Unknown6 []uint8 // Probably padding, per CiderPress
+	Unknown5 [32]uint8 `offset:"0x60"` // Unknown region 5
+
+	// Same as Partitions1 but starting at 0x80 and 0xA0
+	Partitions2 [MaxPartitions]Partition `offset:"0x80"`
+	// Probably padding, per CiderPress
+	Unknown6 [320]uint8 `offset:"0xC0"`
 }
 
 // Validate returns true if the partition tables appears to be valid,
@@ -92,42 +76,12 @@ func (pt MDTurbo) Validate() bool {
 	return true
 }
 
-// Field is the offset map for bytes in a sector
-type Field struct {
-	Start  uint16 // Byte offset
-	Length uint16 // Length of field
-}
-
-func (f Field) End() uint16 {
-	return f.Start + f.Length
-}
-
-// offsetMap is the byte offset for locations in the partition map
-var offsetMap = map[fieldNames]Field{
-	magic:      {0x00, 2},
-	cylinders:  {0x02, 2},
-	unknown1:   {0x04, 2},
-	heads:      {0x06, 2},
-	sectors:    {0x08, 2},
-	unknown2:   {0x0A, 2},
-	partCount1: {0x0C, 1},
-	partCount2: {0x0D, 1},
-	unknown3:   {0x0E, 10},
-	romVersion: {0x18, 2},
-	unknown4:   {0x1A, 6},
-	partStart1: {0x20, 4}, // * number of MaxPartitions (i.e., 32 bytes total)
-	partLen1:   {0x40, 4}, // * number of MaxPartitions
-	unknown5:   {0x60, 32},
-	partStart2: {0x80, 4}, // * number of MaxPartitions
-	partLen2:   {0xa0, 4}, // * number of MaxPartitions
-	unknown6:   {0xc0, 320},
-}
-
 // Deserialize converts from a disk sector into an MDTurbo struct.
 // Returns a partition table data structure, or an error if the
 // structure cannot be parsed. It does *NOT* check for overall structure
 // validity; use MDTurbo.Validate() for that.
 func Deserialize(data []byte) (MDTurbo, error) {
+	var length, offset uint16
 	var partmap MDTurbo
 
 	// Basic sanity check
@@ -135,38 +89,106 @@ func Deserialize(data []byte) (MDTurbo, error) {
 		return partmap, fmt.Errorf("not an MDTurbo partition map: too short (%v bytes, expected %v)", len(data), PartitionBlkLen)
 	}
 
-	// Simple field deserialization
-	partmap.Magic = binary.LittleEndian.Uint16(data[offsetMap[magic].Start:offsetMap[magic].End()])
-	partmap.Cylinders = binary.LittleEndian.Uint16(data[offsetMap[cylinders].Start:offsetMap[cylinders].End()])
-	partmap.Unknown1 = data[offsetMap[unknown1].Start : offsetMap[unknown1].Start+offsetMap[unknown1].Length]
-	partmap.Heads = binary.LittleEndian.Uint16(data[offsetMap[heads].Start:offsetMap[heads].End()])
-	partmap.Sectors = binary.LittleEndian.Uint16(data[offsetMap[sectors].Start:offsetMap[sectors].End()])
-	partmap.Unknown2 = data[offsetMap[unknown2].Start:offsetMap[unknown2].End()]
-	partmap.PartCount1 = data[offsetMap[partCount1].Start]
-	partmap.PartCount2 = data[offsetMap[partCount2].Start]
-	partmap.Unknown3 = data[offsetMap[unknown3].Start:offsetMap[unknown3].End()]
-	partmap.RomVersion = binary.LittleEndian.Uint16(data[offsetMap[romVersion].Start:offsetMap[romVersion].End()])
-	partmap.Unknown4 = data[offsetMap[unknown4].Start:offsetMap[unknown4].End()]
-	partmap.Unknown5 = data[offsetMap[unknown5].Start:offsetMap[unknown5].End()]
-	partmap.Unknown6 = data[offsetMap[unknown6].Start:offsetMap[unknown6].End()]
+	// Reflect-based field deserialization
+	mdt := reflect.TypeOf(partmap)
+	// Iterate over all available fields and read the tag value
+	for i := 0; i < mdt.NumField(); i++ {
+		field := mdt.Field(i) // https://golang.org/pkg/reflect/#StructField
+		switch field.Name {
+		case "Partitions1", "Partitions2":
+			{
+				// Get the offset
+				bigOffset := tagToOffset(field)
+				if bigOffset == -1 {
+					return partmap, fmt.Errorf("field %s is not tagged with a valid offset", field.Name)
+				}
+				offset = uint16(bigOffset)
 
-	for partNum := 0; partNum < int(partmap.PartCount1); partNum++ {
-		var length uint32
-		startOffset := offsetMap[partStart1].Start + (uint16(partNum) * offsetMap[partStart1].Length)
-		partmap.Partitions1[partNum].Start = binary.LittleEndian.Uint32(data[startOffset : startOffset+offsetMap[partStart1].Length])
-		lengthOffset := offsetMap[partLen1].Start + (uint16(partNum) * offsetMap[partStart1].Length)
-		length = binary.LittleEndian.Uint32(data[lengthOffset : lengthOffset+4])
-		partmap.Partitions1[partNum].Length = length & 0x00ffffff
+				// Extract the next 64 bytes into a
+				// slice of uint8 and zip those
+				// partitions into the data structure
+				// [MaxPartitions]Partition
+				end := offset + 64 // FIXME: I don't like the magic number...
+				partArray := zipAllPartitions(data[offset:end])
+
+				// stick our new data structure back
+				// into the parent struct
+				reflect.ValueOf(&partmap).Elem().Field(i).Set(reflect.ValueOf(partArray))
+			}
+		default:
+			bigOffset := tagToOffset(field)
+			if bigOffset == -1 {
+				return partmap, fmt.Errorf("field %s is not tagged with a valid offset", field.Name)
+			}
+			offset = uint16(bigOffset)
+
+			// Set our field - algorithm depends on our size in
+			// bytes
+			// if we have an array (presumably of bytes), this is easy
+			if field.Type.Kind() == reflect.Array || field.Type.Kind() == reflect.Slice {
+				// get the array length
+				length := reflect.ValueOf(&partmap).Elem().Field(i).Len()
+				end := offset + uint16(length)
+				// this is annoying
+				reflect.Copy(reflect.ValueOf(&partmap).Elem().Field(i), reflect.ValueOf(data[offset:end]))
+				continue // this field is done, do the next one
+			}
+
+			// if length == 0, then it wasn't
+			// tagged, but we will calculate
+			length = uint16(field.Type.Size())
+			if length > PartitionBlkLen {
+				return partmap, fmt.Errorf("field %s reports too-large size %d", field.Name, length)
+			}
+			end := offset + length
+			if end > PartitionBlkLen {
+				return partmap, fmt.Errorf("field %s has invalid end %d", field.Name, end)
+			}
+			switch length {
+			case 1:
+				value := data[offset]
+				reflect.ValueOf(&partmap).Elem().Field(i).Set(reflect.ValueOf(value))
+			case 2:
+				value := binary.LittleEndian.Uint16(data[offset:end])
+				reflect.ValueOf(&partmap).Elem().Field(i).Set(reflect.ValueOf(value))
+			case 4:
+				value := binary.LittleEndian.Uint32(data[offset:end])
+				reflect.ValueOf(&partmap).Elem().Field(i).Set(reflect.ValueOf(value))
+			default:
+				return partmap, fmt.Errorf("field %s has unexpected length %d", field.Name, length)
+			}
+		}
 	}
-
-	for partNum := 0; partNum < int(partmap.PartCount2); partNum++ {
-		var length uint32
-		startOffset := offsetMap[partStart2].Start + (uint16(partNum) * offsetMap[partStart2].Length)
-		partmap.Partitions2[partNum].Start = binary.LittleEndian.Uint32(data[startOffset : startOffset+offsetMap[partStart2].Length])
-		lengthOffset := offsetMap[partLen2].Start + (uint16(partNum) * offsetMap[partStart2].Length)
-		length = binary.LittleEndian.Uint32(data[lengthOffset : lengthOffset+4])
-		partmap.Partitions2[partNum].Length = length & 0x00ffffff
-	}
-
 	return partmap, nil
+}
+
+// The partitions are actually represented as Start Sector
+// numbers (0x20, 4 bytes for each of the 8 = 32 bytes),
+// followed by lengths (another 32 bytes starting at 0x40).
+// Here we take that byte array and return a struct
+func zipAllPartitions(byteBlock []uint8) [MaxPartitions]Partition {
+	var start, length uint32
+	var results [MaxPartitions]Partition
+
+	// We always unzip MaxPartitions to ensure correct
+	// round-tripping of arbitrary sectors
+	for item := 0; item < MaxPartitions; item++ {
+		startOffset := 4 * item // uint32 = 4 bytes
+		lengthOffset := (4 * MaxPartitions) + startOffset
+		start = binary.LittleEndian.Uint32(byteBlock[startOffset : startOffset+4])
+		length = binary.LittleEndian.Uint32(byteBlock[lengthOffset : lengthOffset+4])
+		results[item] = Partition{Start: start, RawLength: length}
+	}
+	return results
+}
+
+// tagToOffset extracts an offset tag from a field and returns it as an
+// int
+func tagToOffset(field reflect.StructField) int64 {
+	rawOffset := field.Tag.Get("offset")
+	offset, err := strconv.ParseInt(rawOffset, 0, 16)
+	if err != nil {
+		return -1
+	}
+	return offset
 }
