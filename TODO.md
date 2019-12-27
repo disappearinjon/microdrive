@@ -1,6 +1,4 @@
 # To Do (semi-prioritized)
-* Serialization of partition table
-* Serialization: unit tests
 * CLI: update partition table command (from file?)
 * Documentation
 * CLI: unit tests
@@ -18,3 +16,5 @@
 * Validate function for partition table structure
 * Unit Tests for partition table
 * Rework deserialize to use struct tags & reflections
+* Serialization of partition table
+* Serialization: unit tests

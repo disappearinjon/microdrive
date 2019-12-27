@@ -37,12 +37,14 @@ func readPartition() error {
 	defer output.Close()
 
 	// Get first disk sector, where the partition table sits
-	firstSector := make([]byte, mdturbo.SectorSize)
-	read, err := imagefile.Read(firstSector)
+	var firstSector [mdturbo.SectorSize]byte
+	buf := make([]byte, mdturbo.SectorSize)
+	read, err := imagefile.Read(buf)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(os.Stderr, "Read %v bytes\n", read)
+	copy(firstSector[:], buf)
 
 	// Parse the sector
 	partMap, err := mdturbo.Deserialize(firstSector)
