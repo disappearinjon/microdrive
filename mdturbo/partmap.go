@@ -19,14 +19,14 @@ const PartitionBlkLen = 512
 type Partition struct {
 	Start uint32 // Offset in bytes of partition in sectors
 
-	// rawLength may not reflect the "actual" partition length, but
+	// RawLength may not reflect the "actual" partition length, but
 	// we need it for correct round-tripping of arbitrary partition
 	// tables.
-	rawLength uint32 // Length of partition in sectors
+	RawLength uint32 `json:"Length"` // Length of partition in sectors
 }
 
 func (p Partition) Length() uint32 {
-	return p.rawLength & 0x00ffffff
+	return p.RawLength & 0x00ffffff
 }
 
 // MDTurbo is the data structure with what we know about a
@@ -53,12 +53,12 @@ type MDTurbo struct {
 	// followed by lengths (another 32 bytes starting at 0x40).
 	Partitions1 [MaxPartitions]Partition `offset:"0x20"`
 
-	Unknown5 [32]uint8 `offset:"0x60"` // Unknown region 5
+	Unknown5 [32]uint8 `offset:"0x60" json:",omitempty"` // Unknown region 5
 
 	// Same as Partitions1 but starting at 0x80 and 0xA0
 	Partitions2 [MaxPartitions]Partition `offset:"0x80"`
 	// Probably padding, per CiderPress
-	Unknown6 [320]uint8 `offset:"0xC0"`
+	Unknown6 [320]uint8 `offset:"0xC0" json:",omitempty"`
 }
 
 // Validate returns true if the partition tables appears to be valid,
@@ -71,4 +71,9 @@ func (pt MDTurbo) Validate() bool {
 		return false
 	}
 	return true
+}
+
+// Serialize is the struct-attached Serialize function, for convenience
+func (pt MDTurbo) Serialize() ([PartitionBlkLen]uint8, error) {
+	return Serialize(pt)
 }

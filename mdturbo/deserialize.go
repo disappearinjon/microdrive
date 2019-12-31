@@ -104,7 +104,7 @@ func zipAllPartitions(byteBlock []uint8) [MaxPartitions]Partition {
 		lengthOffset := (4 * MaxPartitions) + startOffset
 		start = binary.LittleEndian.Uint32(byteBlock[startOffset : startOffset+4])
 		length = binary.LittleEndian.Uint32(byteBlock[lengthOffset : lengthOffset+4])
-		results[item] = Partition{Start: start, rawLength: length}
+		results[item] = Partition{Start: start, RawLength: length}
 	}
 	return results
 }

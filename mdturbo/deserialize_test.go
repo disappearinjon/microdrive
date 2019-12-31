@@ -52,7 +52,7 @@ func TestDeserialize(t *testing.T) {
 			if start != tt.start {
 				t.Errorf("got %d, wanted %d", start, tt.start)
 			}
-			length := partmap.Partitions1[tt.number].rawLength
+			length := partmap.Partitions1[tt.number].RawLength
 			if length != tt.length {
 				t.Errorf("got %d, wanted %d", start, tt.length)
 			}

@@ -8,7 +8,8 @@ import "github.com/alexflint/go-arg"
 // CLI flags and values
 
 type args struct {
-	Read *ReadCmd `arg:"subcommand:read"`
+	Read  *ReadCmd  `arg:"subcommand:read"`
+	Write *WriteCmd `arg:"subcommand:write"`
 }
 
 func (args) Description() string {
@@ -27,6 +28,8 @@ func main() {
 	switch subcommand[0] {
 	case "read":
 		err = readPartition()
+	case "write":
+		err = writePartition()
 	default:
 		parsed.Fail("Unknown command")
 	}

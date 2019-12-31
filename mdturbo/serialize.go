@@ -110,11 +110,11 @@ func unzipAllPartitions(partitions [MaxPartitions]Partition) ([]uint8, error) {
 			}
 		}
 		lengthBuf := new(bytes.Buffer)
-		err = binary.Write(lengthBuf, binary.LittleEndian, partitions[item].rawLength)
+		err = binary.Write(lengthBuf, binary.LittleEndian, partitions[item].RawLength)
 		if err != nil {
 			return results[:], fmt.Errorf("could not write partition %d length: %v", item, err)
 		}
-		for b := lengthOffset; b < lengthOffset+binary.Size(partitions[item].rawLength); b++ {
+		for b := lengthOffset; b < lengthOffset+binary.Size(partitions[item].RawLength); b++ {
 			nextByte, err := lengthBuf.ReadByte()
 			results[b] = nextByte
 			if err != nil {

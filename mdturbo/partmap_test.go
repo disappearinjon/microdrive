@@ -6,7 +6,7 @@ import (
 
 func TestValidate(t *testing.T) {
 	var partTable MDTurbo
-	Part0 := Partition{Start: 256, rawLength: 65536}
+	Part0 := Partition{Start: 256, RawLength: 65536}
 
 	if partTable.Validate() {
 		t.Errorf("empty part table validated successfully")
