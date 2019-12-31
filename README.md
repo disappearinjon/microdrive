@@ -26,6 +26,10 @@ Right now, the `microdrive` tool can read and write partition tables.
 While an interactive editor is in the works, the best way to edit a
 partition table today is to:
 
+**When inserting the CF card in a Mac, you will be prompted to
+Initialize, Eject, or Ignore the card. *Always* pick Ignore to avoid
+erasing the card.**
+
 1. Make a partition image using `dd` or similar tool. On my Mac's CF
    reader, I see the CF drive as `/dev/disk2` or `/dev/disk7` depending.
    (Use *Disk Utility* to determine the current disk name. Presuming

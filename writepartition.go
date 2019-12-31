@@ -11,7 +11,7 @@ import (
 	"github.com/disappearinjon/microdrive/mdturbo"
 )
 
-// CLI for Write command
+// WriteCmd contains the CLI args and flags for Write command
 type WriteCmd struct {
 	Image  string `arg:"positional, required" help:"Microdrive/Turbo image file"`
 	File   string `arg:"-f" help:"Input filename (JSON presumed). - for STDIN" default:"-"`

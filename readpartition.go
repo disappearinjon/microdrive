@@ -6,7 +6,7 @@ import "os"
 
 import "github.com/disappearinjon/microdrive/mdturbo"
 
-// CLI for Read command
+// ReadCmd contains the CLI args and flags for Read command
 type ReadCmd struct {
 	Image  string `arg:"positional,required" help:"Microdrive/Turbo image file"`
 	File   string `arg:"-f" help:"Output filename. - for STDOUT" default:"-"`

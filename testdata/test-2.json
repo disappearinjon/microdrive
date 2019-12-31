@@ -11,7 +11,7 @@
 		1,
 		0
 	],
-	"PartCount1": 8,
+	"PartCount1": 3,
 	"PartCount2": 0,
 	"Unknown3": [
 		0,
@@ -22,10 +22,10 @@
 		0,
 		221,
 		0,
-		72,
+		66,
 		0
 	],
-	"RomVersion": 3,
+	"RomVersion": 1,
 	"BootPart": 1,
 	"Unknown4": [
 		0,
@@ -48,23 +48,23 @@
 		},
 		{
 			"Start": 196861,
-			"Length": 65535
+			"Length": 0
 		},
 		{
-			"Start": 262396,
-			"Length": 65535
+			"Start": 196861,
+			"Length": 0
 		},
 		{
-			"Start": 327931,
-			"Length": 65535
+			"Start": 196861,
+			"Length": 0
 		},
 		{
-			"Start": 393466,
-			"Length": 65535
+			"Start": 196861,
+			"Length": 0
 		},
 		{
-			"Start": 459001,
-			"Length": 65535
+			"Start": 196861,
+			"Length": 0
 		}
 	],
 	"Unknown5": [

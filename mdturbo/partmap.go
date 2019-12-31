@@ -25,6 +25,8 @@ type Partition struct {
 	RawLength uint32 `json:"Length"` // Length of partition in sectors
 }
 
+// Length returns the actual partition length, with the for-dual-CF
+// bytes masked out, as per the CiderPress documentation.
 func (p Partition) Length() uint32 {
 	return p.RawLength & 0x00ffffff
 }
@@ -46,7 +48,8 @@ type MDTurbo struct {
 	PartCount2 uint8     `offset:"0x0D"` // # of partitions in second chunk
 	Unknown3   [10]uint8 `offset:"0x0E"` // Unknown region 3
 	RomVersion uint16    `offset:"0x18"` // IIgs Rom version (01 or 03)
-	Unknown4   [6]uint8  `offset:"0x1A"` // Unknown region 4
+	BootPart   uint16    `offset:"0x1A"` // Boot partition.
+	Unknown4   [4]uint8  `offset:"0x1C"` // Unknown region 4
 
 	// The partitions are actually represented as Start Sector
 	// numbers (0x20, 4 bytes for each of the 8 = 32 bytes),
