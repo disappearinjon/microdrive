@@ -1,5 +1,4 @@
 # To Do (semi-prioritized)
-* Library: pretty-print for text output
 * Nit: file output types based on filename?
 * Documentation
 * CLI: unit tests
@@ -25,3 +24,4 @@
   not actually a bug, see https://github.com/golang/go/issues/29310)
 * Find boot partition field; add to partition map. (I'm guessing as to
   whether it's one byte or two; two feels safer for now.)
+* Library: pretty-print for text & go-format output

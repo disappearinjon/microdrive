@@ -25,6 +25,9 @@ func TestValidate(t *testing.T) {
 
 // Totally Standard Partition Table
 // command to generate test data in appropriate format is:
+//
+// microdrive read --output go-bin FILENAME
+// 	or
 // xxd -g 1 -l 512 -c 8 -i FILENAME -
 var testData = [512]byte{
 	0xca, 0xcc, 0xe3, 0x03, 0x04, 0x00, 0x10, 0x00,

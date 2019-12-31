@@ -6,6 +6,12 @@
 // contains a partial description.
 package mdturbo
 
+import (
+	"bytes"
+	"fmt"
+	"text/tabwriter"
+)
+
 // MaxPartitions is the maximum number of partitions in an image
 const MaxPartitions = 8
 
@@ -29,6 +35,17 @@ type Partition struct {
 // bytes masked out, as per the CiderPress documentation.
 func (p Partition) Length() uint32 {
 	return p.RawLength & 0x00ffffff
+}
+
+// End returns the last sector number of a partition
+func (p Partition) End() uint32 {
+	return p.Start + p.Length() - 1
+}
+
+// String returns a string representation of the partition details
+// Format is start, end, size in kilobytes (tab-separated)
+func (p Partition) String() string {
+	return fmt.Sprintf("%d\t%d\t%d", p.Start, p.End(), p.Length()/2)
 }
 
 // MDTurbo is the data structure with what we know about a
@@ -79,4 +96,13 @@ func (pt MDTurbo) Validate() bool {
 // Serialize is the struct-attached Serialize function, for convenience
 func (pt MDTurbo) Serialize() ([PartitionBlkLen]uint8, error) {
 	return Serialize(pt)
+}
+
+// String is the standard stringified partition printer
+func (pt MDTurbo) String() string {
+	var buf bytes.Buffer
+	w := tabwriter.NewWriter(&buf, 6, 0, 4, ' ', tabwriter.AlignRight|tabwriter.Debug)
+	fmt.Fprintf(w, PrettyPrint(pt))
+	w.Flush()
+	return buf.String()
 }

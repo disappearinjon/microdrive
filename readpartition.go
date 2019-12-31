@@ -10,7 +10,7 @@ import "github.com/disappearinjon/microdrive/mdturbo"
 type ReadCmd struct {
 	Image  string `arg:"positional,required" help:"Microdrive/Turbo image file"`
 	File   string `arg:"-f" help:"Output filename. - for STDOUT" default:"-"`
-	Output string `arg:"-o" help:"Output format: text, json" default:"text"`
+	Output string `arg:"-o" help:"Output format: text, go, go-bin, json" default:"text"`
 }
 
 func readPartition() error {
@@ -57,8 +57,12 @@ func readPartition() error {
 
 	// Print it
 	switch cli.Read.Output {
+	case "go":
+		fmt.Fprintf(output, "%#v\n", partMap)
+	case "go-bin":
+		fmt.Fprintf(output, mdturbo.GoPrint(partMap))
 	case "text":
-		fmt.Fprintf(output, "%v\n", partMap)
+		fmt.Fprintf(output, partMap.String())
 	case "json":
 		marshaled, err := json.MarshalIndent(partMap, "", "\t")
 		if err != nil {
