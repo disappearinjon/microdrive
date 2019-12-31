@@ -1,5 +1,4 @@
 # To Do (semi-prioritized)
-* BUG: Why are my omitempty-tagged JSON fields being included?
 * Library: pretty-print for text output
 * Nit: file output types based on filename?
 * Documentation
@@ -22,3 +21,5 @@
 * Serialization of partition table
 * Serialization: unit tests
 * CLI: write partition table command (from json file)
+* BUG: Why are my omitempty-tagged JSON fields being included? (Answer:
+  not actually a bug, see https://github.com/golang/go/issues/29310)

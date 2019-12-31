@@ -53,12 +53,12 @@ type MDTurbo struct {
 	// followed by lengths (another 32 bytes starting at 0x40).
 	Partitions1 [MaxPartitions]Partition `offset:"0x20"`
 
-	Unknown5 [32]uint8 `offset:"0x60" json:",omitempty"` // Unknown region 5
+	Unknown5 [32]uint8 `offset:"0x60"` // Unknown region 5
 
 	// Same as Partitions1 but starting at 0x80 and 0xA0
 	Partitions2 [MaxPartitions]Partition `offset:"0x80"`
 	// Probably padding, per CiderPress
-	Unknown6 [320]uint8 `offset:"0xC0" json:",omitempty"`
+	Unknown6 [320]uint8 `offset:"0xC0"`
 }
 
 // Validate returns true if the partition tables appears to be valid,
