@@ -1,8 +1,11 @@
 package main
 
-import "encoding/json"
-import "fmt"
-import "os"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
+)
 
 import "github.com/disappearinjon/microdrive/mdturbo"
 
@@ -10,7 +13,7 @@ import "github.com/disappearinjon/microdrive/mdturbo"
 type ReadCmd struct {
 	Image  string `arg:"positional,required" help:"Microdrive/Turbo image file"`
 	File   string `arg:"-f" help:"Output filename. - for STDOUT" default:"-"`
-	Output string `arg:"-o" help:"Output format: text, go, go-bin, json" default:"text"`
+	Output string `arg:"-o" help:"Output format: auto, text, go, go-bin, json" default:"auto"`
 }
 
 func readPartition() error {
@@ -56,6 +59,9 @@ func readPartition() error {
 	}
 
 	// Print it
+	if cli.Read.Output == "auto" {
+		cli.Read.Output = autoDetect(cli.Read.File)
+	}
 	switch cli.Read.Output {
 	case "go":
 		fmt.Fprintf(output, "%#v\n", partMap)
@@ -75,4 +81,25 @@ func readPartition() error {
 
 	// And done
 	return nil
+}
+
+// Pick output format based on filename and return as a string
+func autoDetect(filename string) string {
+	var filetype string
+
+	// Get file suffix
+	fileparts := strings.Split(filename, ".")
+	if len(fileparts) == 1 {
+		return ""
+	}
+	suffix := fileparts[len(fileparts)-1]
+	switch suffix {
+	case "txt":
+		filetype = "text"
+	case "jsn", "json":
+		filetype = "json"
+	default:
+		filetype = suffix // this will work or fail independently
+	}
+	return filetype
 }

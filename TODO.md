@@ -1,11 +1,10 @@
 # To Do (semi-prioritized)
-* Nit: file output types based on filename?
-* Documentation
-* CLI: unit tests
 * CLI: edit partition table command - interactive mode?
 * CLI: partition table diff
 * Extract partition to separate file (2MG?)
 * Import separate file to partition - same size only
+* CLI: unit tests
+* Documentation
 
 # Done
 * Deserialization of partition table
@@ -25,3 +24,4 @@
 * Find boot partition field; add to partition map. (I'm guessing as to
   whether it's one byte or two; two feels safer for now.)
 * Library: pretty-print for text & go-format output
+* CLI: autodetect file output types based on filename
