@@ -23,7 +23,7 @@ which is likely to be either `$GOPATH/bin` or `$HOME/go/bin`.
 # Using the `microdrive` tool
 
 Right now, the `microdrive` tool can read and write partition tables,
-and import HDV-format disks into existing partitions.
+and import either HDV and 2MG disks into existing partitions.
 
 ## Reading and Writing Partition Tables.
 While an interactive editor is in the works, the best way to edit a
@@ -52,18 +52,23 @@ erasing the card.**
   `dd if=mydrive.mdt of=/dev/disk2` or equivalent. Again, you may need
   to use `sudo` to work around permissions issues.
 
-## Importing HDV Images
+## Importing Images
 
 As with reading and writing partition tables, I recommend working on a
 copy of an image, with an existing backup.
 
 The *import* command syntax is `microdrive import --partition *X*
-*source* *target*`, where *source* is an HDV-format image you wish to
-copy, *target* is the Microdrive/Turbo CF image, and *X* is the
+*source* *target*`, where *source* is an HDV or 2MG-format image you
+wish to copy, *target* is the Microdrive/Turbo CF image, and *X* is the
 partition number (**starting at 0**) into which you wish to copy the
 image.
 
-**Image imports are destructive. Please use caution!**
+At present, `microdrive` does not enable altering the contents of an
+image. You can use a third-party tool such as
+[DiskM8](https://paleotronic.com/diskm8/) to create an image suitable
+for importation via `microdrive`.
+
+**REMEMBER: Image imports are destructive. Please use caution!**
 
 # Getting Help
 
@@ -74,6 +79,9 @@ or send me e-mail at my address above. I'll do my best to help you!
 
 # Helping me
 
+## For Everyone
+* If you like `microdrive`, please let me know! I'd love to know if
+  somebody is using it!
 * If you encounter a bug or a confusing aspect of the tool that could be
   improved, please file an issue as requested in "Getting Help," above.
   Similarly, if there's a feature you'd like to see, I'd like to know!
@@ -84,8 +92,22 @@ or send me e-mail at my address above. I'll do my best to help you!
   send me just the partition table (512 bytes), and I'll add it to my
   catalog. **I am especially interested in Apple //e users, as my code
   is untested in that environment.**
-* If you're a Go software developer, I welcome feedback on my code
-  quality, and help adding unit tests. If there's a feature you'd like
-  to add, I'm interested in accepting pull requests.
+
+## For Developers
+* I welcome feedback on code quality.
+* I welcome the addition of unit tests!
+* If there's a feature you'd like to add, I'm interested in accepting
+  pull requests.
+* I'm interested in developing a Fuse filesystem for
+  MicroDrive/Turbo-formatted disk images, for direct use on Mac and
+  Linux. If I was to do so, I might rely upon the
+  [Bazil FUSE](https://github.com/bazil/fuse) FUSE library.
+
+# For Active Retrocomputing Community Members
+* If you're in contact with the team at
+  [Paleotronic](https://paleotronic.com/) responsible for DiskM8, I sent
+  an e-mail but never heard back. I'd love to talk with them about
+  native inclusion for MicroDrive-formatted images, which would be
+  easier than the current image-import methodology.
 * If you know a current e-mail address for Joachim Lange, I've got
   questions on the partition table format he could potentially answer.

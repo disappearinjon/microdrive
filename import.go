@@ -7,14 +7,17 @@ import (
 	"strings"
 )
 
-import "github.com/disappearinjon/microdrive/mdturbo"
+import (
+	"github.com/disappearinjon/microdrive/h2mg"
+	"github.com/disappearinjon/microdrive/mdturbo"
+)
 
 // ImportCmd contains the CLI args and flags for Read command
 type ImportCmd struct {
 	Source    string `arg:"positional,required" help:"Hard Drive Image File"`
 	Target    string `arg:"positional,required" help:"Microdrive/Turbo image file"`
 	Partition uint8  `arg:required" help:"Partition number"`
-	Type      string `arg:"-s"  help:"Source file type: auto, hdv" default:"auto"`
+	Type      string `arg:"-s"  help:"Source file type: auto, 2mg, hdv" default:"auto"`
 	Force     bool   `help:"Force write even in unsafe conditions" default:"false"`
 }
 
@@ -34,6 +37,36 @@ func importPartition() error {
 		cli.Import.Type = imageAutoDetect(cli.Import.Source)
 	}
 	switch strings.ToLower(cli.Import.Type) {
+	case "2mg":
+		buf := make([]uint8, h2mg.HeaderSize)
+		read, err := source.Read(buf)
+		if err != nil {
+			return fmt.Errorf("could not read %s: %v", cli.Import.Source, err)
+		}
+		if read != h2mg.HeaderSize {
+			return fmt.Errorf("%s: unexpected read length (expected %d, got %d)",
+				cli.Import.Source, h2mg.HeaderSize, read)
+		}
+		sourceHeader, err := h2mg.Parse2MG(buf)
+		if err != nil {
+			return fmt.Errorf("could not parse %s header: %v", cli.Import.Source, err)
+		}
+		err = sourceHeader.Validate()
+		if err != nil {
+			if cli.Import.Force {
+				fmt.Fprintf(os.Stderr, "WARNING: %s header appears invalid: %v",
+					cli.Import.Source, err)
+			} else {
+				return err
+			}
+		}
+		sourceLength = int64(sourceHeader.Length)
+		// Move to beginning of data - we should already be
+		// there but this doesn't hurt
+		_, err = source.Seek(int64(sourceHeader.Offset), os.SEEK_SET)
+		if err != nil {
+			return fmt.Errorf("could not seek to data for %s: %v", cli.Import.Source, err)
+		}
 	case "hdv":
 		fi, err := source.Stat()
 		if err != nil {
