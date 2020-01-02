@@ -31,6 +31,9 @@ func readPartition() error {
 	switch cli.Read.File {
 	case "-":
 		output = os.Stdout
+		if strings.ToLower(cli.Read.Output) == "auto" {
+			cli.Read.Output = "text"
+		}
 	default:
 		output, err = os.Create(cli.Read.File)
 		if err != nil {
@@ -62,7 +65,7 @@ func readPartition() error {
 	if cli.Read.Output == "auto" {
 		cli.Read.Output = autoDetect(cli.Read.File)
 	}
-	switch cli.Read.Output {
+	switch strings.ToLower(cli.Read.Output) {
 	case "go":
 		fmt.Fprintf(output, "%#v\n", partMap)
 	case "go-bin":
@@ -93,7 +96,7 @@ func autoDetect(filename string) string {
 		return ""
 	}
 	suffix := fileparts[len(fileparts)-1]
-	switch suffix {
+	switch strings.ToLower(suffix) {
 	case "txt":
 		filetype = "text"
 	case "jsn", "json":

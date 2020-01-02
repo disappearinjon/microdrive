@@ -1,9 +1,13 @@
 # To Do (semi-prioritized)
 * CLI: edit partition table command - interactive mode?
 * CLI: partition table diff
-* Extract partition to separate file (2MG?)
-* Import separate file to partition - same size only
+* CLI: Import HDV/2MG files to new partitions
+* CLI: Import 2MG files to existing partitions
+* CLI: Extract partition to separate file (HDV)
+* CLI: Extract partition to separate file (2MG)
 * CLI: unit tests
+* Cleanup: remove magic numbers, replace with constants or calculated
+  values
 * Documentation
 
 # Done
@@ -25,3 +29,4 @@
   whether it's one byte or two; two feels safer for now.)
 * Library: pretty-print for text & go-format output
 * CLI: autodetect file output types based on filename
+* CLI: Import separate file to partition - same size only

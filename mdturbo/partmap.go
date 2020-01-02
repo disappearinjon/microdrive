@@ -93,6 +93,26 @@ func (pt MDTurbo) Validate() bool {
 	return true
 }
 
+// PartCount returns the total number of partitions in a partition
+// table.
+func (pt MDTurbo) PartCount() uint8 {
+	return pt.PartCount1 + pt.PartCount2
+}
+
+// GetPartition returns the Partition data structure and an error
+func (pt MDTurbo) GetPartition(partNum uint8) (Partition, error) {
+	// Confirm the partition desired exists
+	if partNum+1 > pt.PartCount() {
+		return Partition{}, fmt.Errorf("partition %d does not exist (max %d)",
+			partNum, pt.PartCount())
+	}
+	if partNum < MaxPartitions {
+		return pt.Partitions1[partNum], nil
+	} else {
+		return pt.Partitions2[partNum-MaxPartitions], nil
+	}
+}
+
 // Serialize is the struct-attached Serialize function, for convenience
 func (pt MDTurbo) Serialize() ([PartitionBlkLen]uint8, error) {
 	return Serialize(pt)

@@ -22,7 +22,10 @@ which is likely to be either `$GOPATH/bin` or `$HOME/go/bin`.
 
 # Using the `microdrive` tool
 
-Right now, the `microdrive` tool can read and write partition tables.
+Right now, the `microdrive` tool can read and write partition tables,
+and import HDV-format disks into existing partitions.
+
+## Reading and Writing Partition Tables.
 While an interactive editor is in the works, the best way to edit a
 partition table today is to:
 
@@ -49,6 +52,19 @@ erasing the card.**
   `dd if=mydrive.mdt of=/dev/disk2` or equivalent. Again, you may need
   to use `sudo` to work around permissions issues.
 
+## Importing HDV Images
+
+As with reading and writing partition tables, I recommend working on a
+copy of an image, with an existing backup.
+
+The *import* command syntax is `microdrive import --partition *X*
+*source* *target*`, where *source* is an HDV-format image you wish to
+copy, *target* is the Microdrive/Turbo CF image, and *X* is the
+partition number (**starting at 0**) into which you wish to copy the
+image.
+
+**Image imports are destructive. Please use caution!**
+
 # Getting Help
 
 The microdrive project is a labor of love--but I'd love to help you too!
@@ -58,9 +74,18 @@ or send me e-mail at my address above. I'll do my best to help you!
 
 # Helping me
 
-If you've ever edited your Microdrive/Turbo partition table using the
-on-Apple tool, I'd love to get a copy of your boot sector, and a text
-description or screenshot of your configuration. This will help me
-ensure that I'm properly addressing real-world configurations. You can
-send me just the partition table (512 bytes), and I'll add it to my
-catalog.
+* If you encounter a bug or a confusing aspect of the tool that could be
+  improved, please file an issue as requested in "Getting Help," above.
+  Similarly, if there's a feature you'd like to see, I'd like to know!
+* If you've ever edited your Microdrive/Turbo partition table using the
+  on-Apple tool, I'd love to get a copy of your boot sector, and a text
+  description or screenshot of your configuration. This will help me
+  ensure that I'm properly addressing real-world configurations. You can
+  send me just the partition table (512 bytes), and I'll add it to my
+  catalog. **I am especially interested in Apple //e users, as my code
+  is untested in that environment.**
+* If you're a Go software developer, I welcome feedback on my code
+  quality, and help adding unit tests. If there's a feature you'd like
+  to add, I'm interested in accepting pull requests.
+* If you know a current e-mail address for Joachim Lange, I've got
+  questions on the partition table format he could potentially answer.
