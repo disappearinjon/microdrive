@@ -8,6 +8,7 @@ import "github.com/alexflint/go-arg"
 // CLI flags and values
 
 type args struct {
+	Append *AppendCmd `arg:"subcommand:append"`
 	Import *ImportCmd `arg:"subcommand:import"`
 	Read   *ReadCmd   `arg:"subcommand:read"`
 	Write  *WriteCmd  `arg:"subcommand:write"`
@@ -27,6 +28,8 @@ func main() {
 		parsed.Fail("Must specify a command")
 	}
 	switch subcommand[0] {
+	case "append":
+		err = appendPartition()
 	case "import":
 		err = importPartition()
 	case "read":

@@ -1,16 +1,20 @@
 # To Do (semi-prioritized)
 * CLI: edit partition table command - interactive mode?
 * CLI: partition table diff
-* CLI: Import HDV/2MG files to new partitions
-* CLI: Extract partition to separate file (HDV)
+* CLI: Extract partition to separate file (HDV/PO)
 * CLI: Extract partition to separate file (2MG)
 * CLI: support for .gz and .bz2 files
 * CLI: unit tests
+* CLI: provide abstraction layer for file actions?
 * Cleanup: omit JSON byte fields containing only zeroes
 * Cleanup: replace magic numbers with constants or calculated values
 * Documentation
+* MDTurbo Library: add more unit tests (down from 85% to 50%)
 
 # Done
+* CLI: Fix bug where import defaulted to partition 0 overwrite
+* CLI: Add support for .po disk files (same as HDV)
+* CLI: Import HDV/2MG files to new partitions ("append")
 * CLI: Import 2MG files to existing partitions
 * Reversed order of Done list to put most recent on top
 * CLI: Import separate file to partition - same size only

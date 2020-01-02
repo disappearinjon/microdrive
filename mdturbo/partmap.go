@@ -108,9 +108,42 @@ func (pt MDTurbo) GetPartition(partNum uint8) (Partition, error) {
 	}
 	if partNum < MaxPartitions {
 		return pt.Partitions1[partNum], nil
-	} else {
-		return pt.Partitions2[partNum-MaxPartitions], nil
 	}
+
+	return pt.Partitions2[partNum-MaxPartitions], nil
+}
+
+// AddPartition adds a new partition to a disk image, returns the new
+// Partition number and an error if it can't.
+func (pt *MDTurbo) AddPartition(blocks uint32) (int, error) {
+	if pt.PartCount() >= (MaxPartitions * 2) {
+		return -1, fmt.Errorf("maximum partition count reached; cannot add")
+	}
+	// New partition number is coincidentally our maximum partition number.
+	partNum := pt.PartCount()
+	newPart := Partition{RawLength: blocks}
+
+	if partNum >= MaxPartitions { // We're on the second partition block
+		pt.PartCount2++
+		newPartNum := int(partNum) - MaxPartitions
+		if newPartNum-1 < 0 {
+			newPart.Start = pt.Partitions1[MaxPartitions-1].End() + 1
+		} else {
+			newPart.Start = pt.Partitions2[newPartNum-1].End() + 1
+		}
+		pt.Partitions2[newPartNum] = newPart
+		return int(partNum), nil
+	}
+
+	// Otherwise, we're in the first block
+	pt.PartCount1++
+	if partNum == 0 { // First partitions
+		newPart.Start = 256
+	} else {
+		newPart.Start = pt.Partitions1[partNum-1].End() + 1
+	}
+	pt.Partitions1[partNum] = newPart
+	return int(partNum), nil
 }
 
 // Serialize is the struct-attached Serialize function, for convenience
