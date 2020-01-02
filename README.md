@@ -111,3 +111,10 @@ or send me e-mail at my address above. I'll do my best to help you!
   easier than the current image-import methodology.
 * If you know a current e-mail address for Joachim Lange, I've got
   questions on the partition table format he could potentially answer.
+
+# Thanks
+
+Thanks to Henry Courbis of
+[ReActive Micro](https://www.reactivemicro.com/) for supporting this
+project with his donation of an
+[External CF drive](https://wiki.reactivemicro.com/External_CF_Drive).
