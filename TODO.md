@@ -1,7 +1,6 @@
 # To Do (semi-prioritized)
 * CLI: edit partition table command - interactive mode?
 * CLI: partition table diff
-* CLI: Extract partition to separate file (HDV/PO)
 * CLI: Extract partition to separate file (2MG)
 * CLI: support for .gz and .bz2 files
 * CLI: unit tests
@@ -36,3 +35,4 @@
 * Add license
 * To-Do list
 * Deserialization of partition table
+* CLI: Extract partition to separate file (HDV/PO)

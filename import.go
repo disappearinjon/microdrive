@@ -12,7 +12,7 @@ import (
 	"github.com/disappearinjon/microdrive/mdturbo"
 )
 
-// ImportCmd contains the CLI args and flags for the append command
+// ImportCmd contains the CLI args and flags for the import command
 type ImportCmd struct {
 	Source    string `arg:"positional,required" help:"Hard Drive Image File"`
 	Target    string `arg:"positional,required" help:"Microdrive/Turbo image file"`
