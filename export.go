@@ -85,6 +85,8 @@ func exportImage(sourceFile, targetFile, targetType string, partNum uint8, force
 }
 
 func getSource(sourceFile string, force bool) (source *os.File, partMap mdturbo.MDTurbo, err error) {
+	// Get the partition table
+	partMap, err = GetPartitionTable(sourceFile)
 	// Open the source file passed in for reading
 	source, err = os.Open(sourceFile)
 	if err != nil {
@@ -92,29 +94,10 @@ func getSource(sourceFile string, force bool) (source *os.File, partMap mdturbo.
 		return
 	}
 
-	// Get first disk sector, where the partition table sits
-	var firstSector [mdturbo.SectorSize]byte
-	buf := make([]byte, mdturbo.SectorSize)
-	_, err = source.Read(buf)
-	if err != nil {
-		return
-	}
-	copy(firstSector[:], buf)
-
-	// Parse the partition table
-	partMap, err = mdturbo.Deserialize(firstSector)
-	if err != nil {
-		return
-	}
-
 	// Validate partition table format
-	if !partMap.Validate() {
-		if force {
-			fmt.Fprintf(os.Stderr, "WARNING: partition map appears invalid\n")
-		} else {
-			err = fmt.Errorf("partition map on %s appears invalid", sourceFile)
-			return
-		}
+	if !partMap.Validate() && !force {
+		err = fmt.Errorf("partition map on %s appears invalid", sourceFile)
+		return
 	}
 
 	return

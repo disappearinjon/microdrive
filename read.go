@@ -16,16 +16,8 @@ type ReadCmd struct {
 	Output string `arg:"-o" help:"Output format: auto, text, go, go-bin, json" default:"auto"`
 }
 
-func readPartition() error {
+func readPartition() (err error) {
 	var output *os.File
-	var err error
-
-	// Open the file passed in for reading
-	imagefile, err := os.Open(cli.Read.Image)
-	defer imagefile.Close()
-	if err != nil {
-		return err
-	}
 
 	// Set output device
 	switch cli.Read.File {
@@ -37,28 +29,14 @@ func readPartition() error {
 	default:
 		output, err = os.Create(cli.Read.File)
 		if err != nil {
-			return err
+			return
 		}
 	}
 	defer output.Close()
 
-	// Get first disk sector, where the partition table sits
-	var firstSector [mdturbo.SectorSize]byte
-	buf := make([]byte, mdturbo.SectorSize)
-	read, err := imagefile.Read(buf)
+	partMap, err := GetPartitionTable(cli.Read.Image)
 	if err != nil {
-		return err
-	}
-	fmt.Fprintf(os.Stderr, "Read %v bytes\n", read)
-	copy(firstSector[:], buf)
-
-	// Parse the sector
-	partMap, err := mdturbo.Deserialize(firstSector)
-	if err != nil {
-		return err
-	}
-	if !partMap.Validate() {
-		fmt.Fprintf(os.Stderr, "WARNING: partition map appears invalid\n")
+		return
 	}
 
 	// Print it
@@ -73,9 +51,10 @@ func readPartition() error {
 	case "text":
 		fmt.Fprintf(output, partMap.String())
 	case "json":
-		marshaled, err := json.MarshalIndent(partMap, "", "\t")
+		var marshaled []byte
+		marshaled, err = json.MarshalIndent(partMap, "", "\t")
 		if err != nil {
-			return err
+			return
 		}
 		fmt.Fprintf(output, "%v\n", string(marshaled))
 	default:
@@ -83,7 +62,7 @@ func readPartition() error {
 	}
 
 	// And done
-	return nil
+	return
 }
 
 // Pick output format based on filename and return as a string

@@ -9,6 +9,7 @@ import "github.com/alexflint/go-arg"
 
 type args struct {
 	Append *AppendCmd `arg:"subcommand:append"`
+	Diff   *DiffCmd   `arg:"subcommand:diff"`
 	Export *ExportCmd `arg:"subcommand:export"`
 	Import *ImportCmd `arg:"subcommand:import"`
 	Read   *ReadCmd   `arg:"subcommand:read"`
@@ -31,6 +32,8 @@ func main() {
 	switch subcommand[0] {
 	case "append":
 		err = appendPartition()
+	case "diff":
+		err = diffPartitions()
 	case "export":
 		err = exportPartition()
 	case "import":

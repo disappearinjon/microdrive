@@ -142,37 +142,25 @@ func imageAutoDetect(filename string) string {
 }
 
 func getTarget(targetFile string, force bool) (target *os.File, partMap mdturbo.MDTurbo, err error) {
+
+	// Get the partition table
+	partMap, err = GetPartitionTable(targetFile)
+	if err != nil {
+		return
+	}
+
+	// Validate partition table format
+	if !partMap.Validate() && !force {
+		err = fmt.Errorf("partition map on %s appears invalid", targetFile)
+		return
+	}
+
 	// Open the target file passed in for writing
 	target, err = os.OpenFile(
 		targetFile,
 		os.O_RDWR, 0666)
 	if err != nil {
-		return target, partMap, fmt.Errorf("could not open %s: %v", targetFile, err)
-	}
-
-	// Get first disk sector, where the partition table sits
-	var firstSector [mdturbo.SectorSize]byte
-	buf := make([]byte, mdturbo.SectorSize)
-	_, err = target.Read(buf)
-	if err != nil {
-		return target, partMap, err
-	}
-	copy(firstSector[:], buf)
-
-	// Parse the partition table
-	partMap, err = mdturbo.Deserialize(firstSector)
-	if err != nil {
-		return target, partMap, err
-	}
-
-	// Validate partition table format
-	if !partMap.Validate() {
-		if force {
-			fmt.Fprintf(os.Stderr, "WARNING: partition map appears invalid\n")
-		} else {
-			return target, partMap, fmt.Errorf("partition map on %s appears invalid",
-				targetFile)
-		}
+		err = fmt.Errorf("could not open %s: %v", targetFile, err)
 	}
 
 	return
