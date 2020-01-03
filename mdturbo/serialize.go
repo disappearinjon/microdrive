@@ -26,7 +26,6 @@ func Serialize(partmap MDTurbo) ([PartitionBlkLen]uint8, error) {
 		field := mdt.Field(i)
 		bigOffset := tagToOffset(field)
 		if bigOffset == -1 {
-			// FIXME: print a warning?
 			continue
 		}
 		offset := uint16(bigOffset)
@@ -92,7 +91,7 @@ func Serialize(partmap MDTurbo) ([PartitionBlkLen]uint8, error) {
 // being copied into the overall serialized sector at the appropriate
 // offset.
 func unzipAllPartitions(partitions [MaxPartitions]Partition) ([]uint8, error) {
-	var results [64]uint8 // FIXME: magic number
+	var results [PartChunkSize]uint8
 
 	for item := 0; item < MaxPartitions; item++ {
 		startOffset := 4 * item // uint32 = 4 bytes

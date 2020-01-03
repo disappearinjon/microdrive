@@ -38,7 +38,7 @@ func Deserialize(data [512]byte) (MDTurbo, error) {
 			// slice of uint8 and zip those
 			// partitions into the data structure
 			// [MaxPartitions]Partition
-			end := offset + 64 // FIXME: I don't like the magic number...
+			end := offset + PartChunkSize
 			partArray := zipAllPartitions(data[offset:end])
 
 			// stick our new data structure back

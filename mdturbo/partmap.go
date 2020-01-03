@@ -21,6 +21,13 @@ const SectorSize = 512
 // PartitionBlkLen is the number of bytes for a partition block
 const PartitionBlkLen = 512
 
+// PartChunkSize is the number of bytes in either of the two partition
+// blocks inside the table. Each of these chunks represents up to 8
+// partitions, with all of the start sector numbers (8 x 4 bytes apiece
+// = 32) followed by all of the lengths (32 bits apiece each again), for
+// 64 bytes total.
+const PartChunkSize = 64
+
 // Partition is data for a single partition in a partition map
 type Partition struct {
 	Start uint32 // Offset in bytes of partition in sectors
@@ -69,8 +76,8 @@ type MDTurbo struct {
 	Unknown4   [4]uint8  `offset:"0x1C"` // Unknown region 4
 
 	// The partitions are actually represented as Start Sector
-	// numbers (0x20, 4 bytes for each of the 8 = 32 bytes),
-	// followed by lengths (another 32 bytes starting at 0x40).
+	// numbers followed by lengths - see PartChunkSize comment
+	// above.
 	Partitions1 [MaxPartitions]Partition `offset:"0x20"`
 
 	Unknown5 [32]uint8 `offset:"0x60"` // Unknown region 5

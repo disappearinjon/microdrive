@@ -6,8 +6,9 @@
 * CLI: unit tests
 * CLI: provide abstraction layer for file actions?
 * Cleanup: omit JSON byte fields containing only zeroes
-* Cleanup: replace magic numbers with constants or calculated values
 * Documentation
+* MDTurbo Library: abstract away split in partition sets from data
+  structure?
 * MDTurbo Library: add more unit tests (down from 85% to 50%)
 
 # Done
@@ -36,3 +37,4 @@
 * To-Do list
 * Deserialization of partition table
 * CLI: Extract partition to separate file (HDV/PO)
+* Cleanup: replace magic numbers with constants or calculated values
