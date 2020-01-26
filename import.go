@@ -49,6 +49,9 @@ func importImage(sourceFile, targetFile, targetType string, partNum uint8, force
 	}
 
 	// Get partition data
+	if partNum >= partMap.PartCount() {
+		return fmt.Errorf("requested partition %d but max partition is %d", partNum, partMap.PartCount()-1)
+	}
 	partition, err := partMap.GetPartition(partNum)
 	if err != nil {
 		return fmt.Errorf("failed to get partition: %v", err)
