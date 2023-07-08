@@ -12,9 +12,18 @@ for specifics.
 
 * [Download](https://golang.org/dl/) and install Go, if you have not
   already done so.
-* Install dependencies: `go get -d ./...`
-* Run tests: `go test -v ./...`
-* Build and install: `go install`
+* On Current Go Versions
+  * cd workdir 
+  * git clone https://github.com/disappearinjon/microdrive.git
+  * cd microdrive
+  * go mod init microdrive/microdrive
+  * go mod tidy
+  * go test -v ./...
+  * go install
+* On older Go versions (prior to 'go mod'):
+  * Install dependencies: `go get -d ./...`
+  * Run tests: `go test -v ./...`
+  * Build and install: `go install`
 
 This will install binaries in the directory defined by
 [the rules in the Go documentation](https://golang.org/cmd/go/#hdr-Compile_and_install_packages_and_dependencies),
